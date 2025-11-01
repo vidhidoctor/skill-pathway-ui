@@ -22,6 +22,13 @@ const Profile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
   const [profileData, setProfileData] = useState<ProfileData>({
     username: '',
     email: '',
@@ -39,6 +46,13 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please login to view your profile');
+        navigate('/login');
+        return;
+      }
+      
       const { data } = await API.get('/users/profile');
       setProfileData({
         username: data.user.username || data.user.name || '',
@@ -46,7 +60,14 @@ const Profile = () => {
         bio: data.user.bio || '',
       });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to load profile');
+      console.error('Profile fetch error:', error);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+        logout();
+        navigate('/login');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to load profile');
+      }
     }
   };
 
@@ -128,6 +149,10 @@ const Profile = () => {
       setLoading(false);
     }
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
