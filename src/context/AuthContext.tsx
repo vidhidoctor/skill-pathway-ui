@@ -31,11 +31,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
+        // Ensure axios has the auth header on app load
+        API.defaults.headers.common.Authorization = `Bearer ${token}`;
       } catch (error) {
         console.error('Failed to parse user data:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        delete API.defaults.headers.common.Authorization;
       }
+    } else {
+      // No session present
+      delete (API.defaults.headers.common as any).Authorization;
     }
     setLoading(false);
   }, []);
@@ -45,6 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data } = await API.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      // Set axios auth header immediately
+      API.defaults.headers.common.Authorization = `Bearer ${data.token}`;
       setUser(data.user);
       toast.success('Login successful!');
     } catch (error: any) {
@@ -58,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data } = await API.post('/auth/register', { name, email, password });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      API.defaults.headers.common.Authorization = `Bearer ${data.token}`;
       setUser(data.user);
       toast.success('Account created successfully!');
     } catch (error: any) {
@@ -69,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    delete API.defaults.headers.common.Authorization;
     setUser(null);
     toast.success('Logged out successfully');
   };
