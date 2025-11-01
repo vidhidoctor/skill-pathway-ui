@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { GraduationCap, LogOut, LayoutDashboard, ShieldCheck, User } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -53,6 +53,12 @@ const Navbar = () => {
                     </Button>
                   </Link>
                 )}
+                <Link to="/profile">
+                  <Button variant="ghost">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
                 <Button variant="outline" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
